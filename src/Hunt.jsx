@@ -52,7 +52,8 @@ function Create({agent,go}){
 function Join({agent,go}){
  const[code,setCode]=useState(''),[err,setErr]=useState(),[busy,setBusy]=useState(false)
  const join=async e=>{e.preventDefault();setBusy(true);setErr();try{
-  const{data:l}=await sb.from('lobbies').select().eq('code',code.toUpperCase()).eq('status','waiting').maybeSingle();if(!l)throw Error('No open squad with that code.')
+  const{data:lid,error:fe}=await sb.rpc('find_lobby',{p_code:code});if(fe)throw fe;if(!lid)throw Error('No open squad with that code.')
+  const l={id:lid}
   let{data:p}=await sb.from('players').select().eq('lobby_id',l.id).eq('user_id',agent.id).maybeSingle()
   if(!p){const r=await sb.from('players').insert({lobby_id:l.id,user_id:agent.id,role:'shadow'}).select().single();if(r.error)throw r.error;p=r.data}
   go({v:'lobby',lid:l.id,me:p.id})}catch(e){setErr(e.message);setBusy(false)}}

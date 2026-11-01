@@ -21,9 +21,9 @@ Deno.serve(async (req) => {
     const uid = user.id
     const saveChallenge = (challenge: string, kind: string) => admin.from('webauthn_challenges').upsert({ user_id: uid, challenge, kind, expires_at: new Date(Date.now() + 5 * 60e3).toISOString() })
     const takeChallenge = async (kind: string) => {
-      const { data } = await admin.from('webauthn_challenges').select().eq('user_id', uid).eq('kind', kind).maybeSingle()
-      await admin.from('webauthn_challenges').delete().eq('user_id', uid)
-      if (!data || new Date(data.expires_at) < new Date()) throw new Error('Request expired. Try again.')
+      // One atomic delete-and-return: two requests racing for the same challenge can't both get it.
+      const { data } = await admin.from('webauthn_challenges').delete().eq('user_id', uid).select().maybeSingle()
+      if (!data || data.kind !== kind || new Date(data.expires_at) < new Date()) throw new Error('Request expired. Try again.')
       return data.challenge as string
     }
 
