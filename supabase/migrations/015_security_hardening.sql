@@ -32,7 +32,7 @@ grant execute on function find_lobby(text) to authenticated;
 
 create or replace function _num_between(j jsonb, k text, lo numeric, hi numeric) returns boolean
 language sql immutable as $$
- select jsonb_typeof(j->k)='number' and (j->>k)::numeric between lo and hi $$;
+ select coalesce(jsonb_typeof(j->k)='number' and (j->>k)::numeric between lo and hi, false) $$;  -- a missing key must fail, not pass as NULL
 
 alter table lobbies drop constraint if exists config_valid;
 alter table lobbies add constraint config_valid check (
