@@ -22,16 +22,16 @@ export function CipherReveal({onDone,again}){
  const save=()=>{setErr();sb.rpc('set_cipher',{p_phrase:c}).then(({error})=>error?setErr(error.message):setSaved(true))}
  useEffect(save,[])
  const copy=()=>navigator.clipboard?.writeText(c).then(()=>{setCopied(true);setTimeout(()=>setCopied(false),2000)})
- return <div className="min-h-dvh bg-ink text-paper flex flex-col gap-4 p-6 pt-[max(2rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))]">
-  <div className="text-paper/70 font-semibold">{again?'New cipher':'Step 2 of 2'}</div>
+ return <div className="min-h-dvh bg-panel text-ink flex flex-col gap-4 p-6 pt-[max(2rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))]">
+  <div className="text-mute font-semibold">{again?'New cipher':'Step 2 of 2'}</div>
   <h1 className="stencil text-6xl text-signal">Your cipher</h1>
   <p className="text-lg">These 6 words bring your agent back on a new phone or after clearing the app. Screenshot them or write them down. Nobody, not even HQ, can recover them for you.{again&&' Your old cipher stops working now.'}</p>
-  <ol className="grid grid-cols-2 gap-2">{c.split('-').map((w,i)=><li key={i} className="rounded-md bg-paper/10 border-2 border-paper/30 px-3 py-2 font-extrabold text-xl"><span className="text-paper/50 text-sm mr-2">{i+1}</span>{w}</li>)}</ol>
+  <ol className="grid grid-cols-2 gap-2">{c.split('-').map((w,i)=><li key={i} className="rounded-xl bg-raise border border-line px-3 py-2 font-bold text-xl"><span className="text-ink/50 text-sm mr-2">{i+1}</span>{w}</li>)}</ol>
   <button onClick={copy} className="font-bold underline text-left">{copied?'Copied':'Copy to clipboard'}</button>
-  {err&&<div className="flex gap-4"><Err>{err}</Err><button onClick={save} className="font-extrabold underline shrink-0">Retry</button></div>}
-  <label className="flex gap-3 items-center font-bold mt-auto"><input type="checkbox" checked={ok} onChange={e=>setOk(e.target.checked)} className="size-6 accent-[#FFD21F]"/>I've saved my cipher somewhere safe</label>
+  {err&&<div className="flex gap-4"><Err>{err}</Err><button onClick={save} className="font-bold underline shrink-0">Retry</button></div>}
+  <label className="flex gap-3 items-center font-bold mt-auto"><input type="checkbox" checked={ok} onChange={e=>setOk(e.target.checked)} className="size-6 accent-[#A3D67F]"/>I've saved my cipher somewhere safe</label>
   <Btn disabled={!ok||!saved} onClick={onDone}>{saved?'Continue':'Saving…'}</Btn>
-  {err&&!again&&<button onClick={onDone} className="font-bold text-paper/70 underline">Skip for now (set it later in Agent security)</button>}</div>
+  {err&&!again&&<button onClick={onDone} className="font-bold text-mute underline">Skip for now (set it later in Agent security)</button>}</div>
 }
 
 export function Restore({onDone,onBack}){
@@ -59,8 +59,8 @@ export function SecureScreen({onExit}){
  if(mode==='cipher')return <CipherReveal again onDone={()=>{setMode();load()}}/>
  return <Screen title="Agent security" kicker="Keep your agent" onBack={onExit}>
   <Card className="p-4 flex flex-col gap-1">
-   <div className="flex justify-between font-extrabold text-lg"><span>Cipher</span><span className={st?.cipher?'text-ok':'text-alert'}>{st==null?'…':st.cipher?'Set':'Not set'}</span></div>
-   <div className="flex justify-between font-extrabold text-lg"><span>Fingerprint / Face ID</span><span className={st?.passkeys?'text-ok':'text-mute'}>{st==null?'…':st.passkeys?`${st.passkeys} passkey${st.passkeys>1?'s':''}`:'None'}</span></div></Card>
+   <div className="flex justify-between font-bold text-lg"><span>Cipher</span><span className={st?.cipher?'text-ok':'text-alert'}>{st==null?'…':st.cipher?'Set':'Not set'}</span></div>
+   <div className="flex justify-between font-bold text-lg"><span>Fingerprint / Face ID</span><span className={st?.passkeys?'text-ok':'text-mute'}>{st==null?'…':st.passkeys?`${st.passkeys} passkey${st.passkeys>1?'s':''}`:'None'}</span></div></Card>
   <p>Your agent lives on this phone. If you clear the app, switch phones or open it from a different browser, use one of these to bring it back.</p>
   {pk?<Btn disabled={busy} onClick={add}>{busy?'Waiting for your phone…':'Add fingerprint / Face ID'}</Btn>:<p className="text-mute font-semibold">This browser doesn't support passkeys. Use your cipher.</p>}
   <p className="text-sm text-mute -mt-2">Saved to your phone's password manager (iCloud Keychain or Google), so it follows you to a new phone signed in to the same account.</p>

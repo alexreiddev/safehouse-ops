@@ -14,7 +14,7 @@ import Guide,{TOUR,seen,mark} from './Tour'
 export class Guard extends Component{state={e:null};static getDerivedStateFromError(e){return{e}}
  componentDidCatch(e){console.error(e)}
  render(){return this.state.e?<div className="min-h-dvh p-6 pt-16 flex flex-col gap-4"><h1 className="stencil text-5xl">Signal lost</h1><p className="text-lg">Something broke on this screen. Your progress is saved on the server.</p>
-  <button onClick={()=>{try{localStorage.removeItem('sh_view')}catch{};location.reload()}} className="rounded-md bg-signal border-2 border-ink py-4 text-xl font-extrabold">Back to HQ</button></div>:this.props.children}}
+  <button onClick={()=>{try{localStorage.removeItem('sh_view')}catch{};location.reload()}} className="rounded-xl bg-signal text-onsig py-4 text-xl font-bold">Back to HQ</button></div>:this.props.children}}
 
 export default function App(){
  const[agent,setAgent]=useState(),[err,setErr]=useState()
@@ -25,7 +25,7 @@ export default function App(){
  const[tour,setTour]=useState(false)
  useEffect(()=>{if(agent&&!seen('sh_tour'))setTour(true)},[agent])
  const go=v=>{localStorage.setItem('sh_view',v);setView(v);if(v==='hq')load()}
- if(err)return <div className="p-6 pt-16"><h1 className="stencil text-5xl mb-4">No signal</h1><Err>Couldn't reach HQ: {err}</Err><button onClick={()=>{setAgent(undefined);load()}} className="mt-4 w-full rounded-md bg-signal border-2 border-ink py-4 text-xl font-extrabold">Try again</button></div>
+ if(err)return <div className="p-6 pt-16"><h1 className="stencil text-5xl mb-4">No signal</h1><Err>Couldn't reach HQ: {err}</Err><button onClick={()=>{setAgent(undefined);load()}} className="mt-4 w-full rounded-xl bg-signal text-onsig py-4 text-xl font-bold">Try again</button></div>
  if(agent===undefined)return <div className="min-h-dvh grid place-items-center"><div className="text-center"><div className="stencil text-4xl animate-pulse">Safehouse</div>{wait&&<p className="mt-3 font-semibold text-mute">Lots of agents checking in. Retrying in {wait}s…</p>}</div></div>
  if(!agent)return <Onboard onDone={load}/>
  if(view==='drop')return <DeadDrop agent={agent} onExit={()=>go('hq')}/>
