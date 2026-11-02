@@ -1,5 +1,5 @@
 import {useEffect,useState} from 'react'
-import {sb,useGeo,useNow,fmt,compass,km,share,useHeading,askHeading} from './lib'
+import {sb,useGeo,useNow,fmt,compass,km,share,useHeading,askHeading,facing} from './lib'
 import {Btn,Screen,Stamp,Err,Card,GpsBar,Title,Hz,Attrib} from './ui'
 import {Back,Timer,Walk,X,Box,Check} from './icons'
 import OpsMap from './OpsMap'
@@ -87,20 +87,20 @@ export default function DeadDrop({agent,onExit}){
    {res.ok&&<Btn v="ghost" onClick={()=>share(`Secured Operation ${res.codename} on Safehouse: ${km(res.meters)} km on foot in ${fmt(res.seconds)}.`)}>Share result</Btn>}
    <Btn onClick={()=>{setRes();setDrops();setPhase('setup')}}>New drop</Btn><Btn v="ghost" onClick={onExit}>Back to HQ</Btn></div></Screen>
 
- const left=(new Date(run.deadline)-now)/1000,d=st?.distance,near=d!=null&&d<=SECURE_M,rot=st?(heading==null?st.bearing:st.bearing-heading):0
+ const left=(new Date(run.deadline)-now)/1000,d=st?.distance,near=d!=null&&d<=SECURE_M,face=facing(heading,pos),rot=st?(face==null?st.bearing:st.bearing-face):0
  return <div className="h-dvh flex flex-col">
   <header className="px-4 pt-[max(.9rem,env(safe-area-inset-top))] pb-3 flex items-end gap-3">
    <button onClick={onExit} aria-label="Back to HQ" className="size-10 -ml-1 grid place-items-center rounded-full hover:bg-raise"><Back/></button>
    <div className="min-w-0 flex-1"><div className="text-mute">Operation</div><Title wrap className="text-[1.75rem]">{run.codename}</Title></div>
    <div className={`rounded-xl border px-3 py-1.5 inline-flex items-center gap-2 wide text-3xl tabular-nums ${left<120?'border-alert text-alert':'border-alert/70 text-ink'}`}><Timer className="size-6 text-alert"/>{fmt(left)}</div></header>
   <div className="relative flex-1 mx-3 rounded-2xl overflow-hidden border border-line">
-   <OpsMap center={{lat:run.zone_lat,lng:run.zone_lng}} zoom={run.zone_r>250?15:16} me={pos} ctl="right-3 top-3"
+   <OpsMap center={{lat:run.zone_lat,lng:run.zone_lng}} zoom={run.zone_r>250?15:16} me={pos} ctl="right-3 top-3" heading={face} rotatable
     circles={[{lat:run.zone_lat,lng:run.zone_lng,r:run.zone_r,dash:true,color:'#E5584F'}]}/></div>
   <div className="px-3 pt-3 pb-[max(.75rem,env(safe-area-inset-bottom))] space-y-3">
    {gpsErr&&<Err>{gpsErr}</Err>}<Err>{msg}</Err>
    <Card className="p-4 flex items-center gap-4">
     <Dial rot={rot} on={!!st}/>
-    <div className="min-w-0 flex-1"><div className="text-mute">{heading==null?'Arrow points on the map (north is up)':'Turn until the arrow points up, then walk'}</div>
+    <div className="min-w-0 flex-1"><div className="text-mute">{face==null?'Arrow points on the map (north is up)':'Turn until the arrow points up, then walk'}</div>
      <div className="wide text-5xl leading-none mt-1 tabular-nums">{d==null?'—':d>=1000?km(d)+' km':d+' m'} <span>{st?compass(st.bearing):''}</span></div>
      {st?.hint&&<div className="font-semibold mt-1.5"><span className="text-amber">Hint:</span> {st.hint}</div>}</div>
     <span className="self-end"><Hz/></span></Card>
@@ -108,6 +108,6 @@ export default function DeadDrop({agent,onExit}){
     :<div role="status" className="w-full rounded-xl py-3.5 px-5 text-xl wide inline-flex items-center justify-center gap-2.5 bg-signal/10 text-ink border border-signal/60"><Walk className="size-6 text-amber"/>{d==null?'Locking signal…':`Walk ${Math.max(0,d-SECURE_M)} m more to secure`}</div>}
    <div className="flex items-center gap-3">
     <GpsBar pos={pos} detail={false}/>
-    <button onClick={abort} className="rounded-lg border border-alert/70 text-alert px-3 py-1 wide text-base inline-flex items-center gap-1.5"><X className="size-4"/>Abort op</button>
+    <button onClick={abort} className="rounded-lg border border-alert/70 text-alert px-3 py-1 wide text-base whitespace-nowrap inline-flex items-center gap-1.5"><X className="size-4"/>Abort op</button>
     <Attrib className="ml-auto"/></div></div></div>
 }

@@ -23,7 +23,7 @@ const SC={alert:'text-alert border-alert',ok:'text-signal border-signal',ink:'te
 export const Stamp=({children,c='alert',className=''})=><div className={`stamp-in inline-block -rotate-6 border-[5px] rounded-xl px-4 pt-2 pb-1 stencil text-6xl ${SC[c]} ${className}`}>{children}</div>
 export const Err=({children})=>children?<div role="alert" className="rounded-xl bg-alert/10 border border-alert/70 text-alert font-semibold px-3 py-2">{children}</div>:null
 export const Card=({className='',...p})=><div {...p} className={`rounded-2xl border border-line bg-card ${className}`}/>
-export const Chip=({className='',children})=><span className={`inline-flex items-center gap-1.5 rounded-lg border border-line bg-card/90 px-2.5 py-1 text-sm wide ${className}`}>{children}</span>
+export const Chip=({className='',children})=><span className={`inline-flex items-center gap-1.5 rounded-lg border border-line bg-card/90 px-2.5 py-1 text-sm wide whitespace-nowrap ${className}`}>{children}</span>
 /* round map control */
 export const MapBtn=({label,onClick,children,active})=><button type="button" onClick={onClick} aria-label={label} aria-pressed={active}
  className={'size-12 rounded-full grid place-items-center border backdrop-blur '+(active?'bg-signal/20 border-signal text-signal':'bg-panel/80 border-line text-ink')}>{children}</button>

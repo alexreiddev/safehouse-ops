@@ -19,8 +19,12 @@ div.leaflet-container{background:#101613;font-family:inherit}
 .map-day div.leaflet-container{background:#dfe4da}
 .map-dark .leaflet-tile-pane{filter:invert(1) hue-rotate(185deg) saturate(.35) brightness(.72) contrast(1.05)}
 .map-day .leaflet-tile-pane{filter:saturate(.7) brightness(.85)}
-.leaflet-tooltip{background:var(--color-ink);color:var(--color-paper);border:0;border-radius:8px;font-family:var(--font-cond);font-weight:700;letter-spacing:.03em;text-transform:uppercase;box-shadow:0 2px 8px #0008;padding:3px 8px}
-.leaflet-tooltip-top:before{border-top-color:var(--color-ink)}
+.leaflet-tooltip{background:transparent;border:0;box-shadow:none;padding:0}
+.leaflet-tooltip-top:before{display:none}
+.tt{display:inline-block;background:var(--color-ink);color:var(--color-paper);border-radius:8px;font-family:var(--font-cond);font-weight:700;letter-spacing:.03em;text-transform:uppercase;box-shadow:0 2px 8px #0008;padding:3px 8px;white-space:nowrap}
+/* heading-up map: labels stay upright while the map turns */
+.map-rot .tt{transform:rotate(var(--rot));transition:transform .3s linear}
+.me-icon{background:none;border:0}
 .leaflet-control-attribution{display:none}
 button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(--color-signal);outline-offset:2px}
 @media (prefers-reduced-motion:no-preference){.stamp-in{animation:stamp .35s cubic-bezier(.2,1.6,.4,1) both}}

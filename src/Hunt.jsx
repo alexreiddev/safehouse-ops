@@ -1,5 +1,5 @@
 import {useEffect,useRef,useState} from 'react'
-import {sb,useGeo,useNow,dist,fmt,code4,km,share} from './lib'
+import {sb,useGeo,useNow,dist,fmt,code4,km,share,useHeading,askHeading,facing} from './lib'
 import {Btn,Screen,Pick,Field,inputCls,Err,Stamp,Card,GpsBar,Title,Hz,Attrib} from './ui'
 import {Back,Stop,Shield,Mask,Home,Plus,Trash,Target} from './icons'
 import Guide,{HUNT,seen,mark} from './Tour'
@@ -173,7 +173,7 @@ const Banner=({tone='alert',children})=><div className={'mt-2 rounded-xl px-3 py
 
 export function Game({l,ps,meId,exit,st={},posRef:sharedPos,lagging,refresh=()=>{}}){
  const c=cfg(l.config),me=ps.find(p=>p.id===meId)||{},host=me.is_host
- const[pos,gpsErr]=useGeo(),now=useNow()+(st.offset||0),[msg,setMsg]=useState(),[brief,setBrief]=useState(true)
+ const[pos,gpsErr]=useGeo(),now=useNow()+(st.offset||0),[msg,setMsg]=useState(),[brief,setBrief]=useState(true),heading=useHeading()
  const shs=useSafehouses(l),pins=st.pings||[],shel=st.shelters||[],pi=st.ping
  useEffect(()=>{if(sharedPos)sharedPos.current=pos},[pos])
  const t0=new Date(l.started_at).getTime(),hEnd=t0+c.hide_time*6e4,end=hEnd+c.duration*6e4,every=c.shrink_every*6e4
@@ -214,7 +214,7 @@ export function Game({l,ps,meId,exit,st={},posRef:sharedPos,lagging,refresh=()=>
    {me.status==='caught'&&<Banner tone="sig">You were tagged.{c.caught_police?' You\'re Police now.':' You\'re out; watch the rest of the op.'}</Banner>}
   </Card></div>
   <div className="relative flex-1 m-3 mb-2 rounded-2xl overflow-hidden border border-line">
-   <OpsMap center={{lat:c.zone_lat,lng:c.zone_lng}} zoom={16} me={pos} ctl="right-3 top-3"
+   <OpsMap center={{lat:c.zone_lat,lng:c.zone_lng}} zoom={16} me={pos} ctl="right-3 top-3" heading={facing(heading,pos)} rotatable
     pins={[...liveShs.map(s=>({lat:s.lat,lng:s.lng,color:SAFE,ring:false,label:`⌂ ${s.name} · ${s.truce_sec/60} min`})),...mp]}
     circles={[{lat:c.zone_lat,lng:c.zone_lng,r,color:LIME},...liveShs.map(s=>({lat:s.lat,lng:s.lng,r:s.radius,color:SAFE,fill:SAFE}))]}/>
    {police&&phase==='hunt'&&pos&&<div className="absolute left-3 top-3 z-[1000]"><Scope size={124} range={scopeR} blips={scope} labels={false}/></div>}
@@ -222,7 +222,7 @@ export function Game({l,ps,meId,exit,st={},posRef:sharedPos,lagging,refresh=()=>
     <div className="flex-1 min-w-0"><Title className="text-2xl">{police?'You are Police':'You are Kallan'}</Title>
      <p className="mt-1.5 text-[.95rem] leading-snug">{police?`Wait out the hide timer. Then Kallan ping every ${c.ping_interval} min, and faster as you close in (down to every 15 s within 50 m). The radar shows their bearing and distance. Within ${c.catch_radius} m of a pin a Tag button appears. A Kallan in a safehouse vanishes until their time there runs out.`
       :`Get to a hiding spot inside the circle before the timer ends. You're revealed every ${c.ping_interval} min, and faster when Police get close. Stay inside the circle: 30 s outside and you're out. Step into a ⌂ safehouse to vanish from every map for its set time.`}</p>
-     <button onClick={()=>setBrief(false)} className="mt-3 rounded-xl bg-signal text-onsig wide text-lg px-6 py-2">Got it</button></div>
+     <button onClick={()=>{askHeading();setBrief(false)}} className="mt-3 rounded-xl bg-signal text-onsig wide text-lg px-6 py-2">Got it</button></div>
     {police?<Shield className="size-14 text-amber/70 shrink-0" sw={1.3}/>:<Mask className="size-14 text-signal/70 shrink-0" sw={1.3}/>}</Card></div>}
   </div>
   <div className="px-3 pb-[max(.75rem,env(safe-area-inset-bottom))] space-y-2">

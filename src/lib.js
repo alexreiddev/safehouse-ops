@@ -16,12 +16,13 @@ export const rankOf=xp=>{let i=0;while(i+1<RANKS.length&&xp>=RANKS[i+1][0])i++;r
 export const compass=b=>['N','NE','E','SE','S','SW','W','NW'][Math.round((((b%360)+360)%360)/45)%8]
 export const share=t=>navigator.share?navigator.share({text:t}).catch(()=>{}):navigator.clipboard?.writeText(t)
 
-/* live GPS + screen wake lock while a mission screen is open */
+/* live GPS + screen wake lock while a mission screen is open.
+   pos also carries course (deg, from GPS, only while moving) and speed (m/s). */
 export function useGeo(keepAwake=true){
  const[pos,setPos]=useState(),[err,setErr]=useState(),ref=useRef()
  useEffect(()=>{let wl
-  const w=navigator.geolocation.watchPosition(g=>{const p={lat:g.coords.latitude,lng:g.coords.longitude,acc:g.coords.accuracy};ref.current=p;setPos(p);setErr()},
-   e=>setErr(e.code===1?'Location is blocked. Allow location for this site in your browser settings, then reload.':'Waiting for a GPS fix. Step into the open.'),
+  const w=navigator.geolocation.watchPosition(g=>{const c=g.coords,p={lat:c.latitude,lng:c.longitude,acc:c.accuracy,speed:c.speed,course:c.heading!=null&&!Number.isNaN(c.heading)&&(c.speed??0)>0.8?c.heading:null};ref.current=p;setPos(p);setErr()},
+   e=>setErr(e.code===1?'Location is blocked for this site. Open Location & compass setup from the menu to fix it.':'Waiting for a GPS fix. Step into the open.'),
    {enableHighAccuracy:true,maximumAge:0,timeout:20000})
   const lock=()=>{if(document.visibilityState==='visible')navigator.wakeLock?.request('screen').then(x=>wl=x).catch(()=>{})}
   if(keepAwake){lock();document.addEventListener('visibilitychange',lock)}
@@ -30,15 +31,30 @@ export function useGeo(keepAwake=true){
 }
 export function useNow(ms=1000){const[n,setN]=useState(Date.now());useEffect(()=>{const i=setInterval(()=>setN(Date.now()),ms);return()=>clearInterval(i)},[ms]);return n}
 
-/* compass heading in degrees (0 = north), or null when the device has no compass.
-   iOS needs askHeading() from a tap before it reports. */
-export async function askHeading(){try{if(typeof DeviceOrientationEvent!=='undefined'&&DeviceOrientationEvent.requestPermission)await DeviceOrientationEvent.requestPermission()}catch{}}
+/* ---------- compass (DeviceOrientation API) ---------- */
+export const platform=()=>{const u=navigator.userAgent||'',ios=/iPad|iPhone|iPod/.test(u)||(/Macintosh/.test(u)&&navigator.maxTouchPoints>1)
+ return{ios,android:/Android/i.test(u),inApp:/FBAN|FBAV|Instagram|Line\/|WhatsApp|Snapchat|Twitter|LinkedInApp|; wv\)|GSA\//i.test(u),standalone:matchMedia('(display-mode: standalone)').matches||navigator.standalone===true}}
+export const needsCompassPrompt=()=>typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function'
+/* iOS 13+ only grants compass access from a tap. Returns 'granted' | 'denied' | 'unsupported'. */
+export async function askHeading(){
+ if(typeof DeviceOrientationEvent==='undefined')return'unsupported'
+ if(!needsCompassPrompt())return'granted'
+ try{const r=await DeviceOrientationEvent.requestPermission();try{localStorage.setItem('sh_compass',r)}catch{};return r}catch{return'denied'}}
+const screenAngle=()=>(screen.orientation?.angle??window.orientation??0)||0
+/* compass heading in degrees (0 = north, clockwise), smoothed; null when the device gives no absolute heading.
+   Updates are throttled and only fire for changes over 2°, so the map doesn't redraw on sensor noise. */
 export function useHeading(){
  const[h,setH]=useState(null)
- useEffect(()=>{
-  const ios=e=>{if(e.webkitCompassHeading!=null)setH(e.webkitCompassHeading)}
-  const abs=e=>{if(e.absolute&&e.alpha!=null)setH((360-e.alpha)%360)}
+ useEffect(()=>{let cur=null,last=0,shown=null
+  const push=raw=>{const v=((raw+screenAngle())%360+360)%360
+   if(cur==null)cur=v;else{let d=((v-cur+540)%360)-180;cur=(cur+d*0.25+360)%360}
+   const t=performance.now();if(t-last<80)return
+   if(shown==null||Math.abs(((cur-shown+540)%360)-180)>=2){shown=cur;last=t;setH(Math.round(cur))}}
+  const ios=e=>{if(e.webkitCompassHeading!=null)push(e.webkitCompassHeading)}
+  const abs=e=>{if(e.alpha!=null&&(e.absolute||e.type==='deviceorientationabsolute'))push(360-e.alpha)}
   window.addEventListener('deviceorientation',ios);window.addEventListener('deviceorientationabsolute',abs)
   return()=>{window.removeEventListener('deviceorientation',ios);window.removeEventListener('deviceorientationabsolute',abs)}},[])
  return h
 }
+/* where the agent is facing: compass first, else GPS course while walking */
+export const facing=(heading,pos)=>heading??pos?.course??null

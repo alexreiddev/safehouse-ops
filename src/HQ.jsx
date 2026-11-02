@@ -43,7 +43,7 @@ export default function HQ({agent,go,how}){
   {menu&&<div className="fixed inset-0 z-[2000] bg-black/60" onClick={()=>setMenu(false)}>
    <nav aria-label="Menu" onClick={e=>e.stopPropagation()} className="absolute left-0 top-0 bottom-0 w-72 max-w-[85vw] bg-panel border-r border-line p-4 pt-[max(1rem,env(safe-area-inset-top))] flex flex-col gap-1">
     <div className="flex items-center justify-between mb-3"><span className="stencil text-2xl flex items-center">Menu<Hz/></span><button onClick={()=>setMenu(false)} aria-label="Close menu" className="size-10 grid place-items-center rounded-full hover:bg-raise"><X/></button></div>
-    {[['Dead Drop',()=>go('drop')],['ShadowHunt',()=>go('hunt')],['Leaderboard',()=>go('board')],['Anchal Zero',openFiles],['How to play',how],['Agent security',()=>go('secure')],...(agent.is_admin?[['HQ admin: drops & safehouses',()=>go('admin')]]:[])].map(([t,f])=>
+    {[['Dead Drop',()=>go('drop')],['ShadowHunt',()=>go('hunt')],['Leaderboard',()=>go('board')],['Anchal Zero',openFiles],['How to play',how],['Location & compass setup',()=>go('setup')],['Agent security',()=>go('secure')],...(agent.is_admin?[['HQ admin: drops & safehouses',()=>go('admin')]]:[])].map(([t,f])=>
      <button key={t} onClick={()=>{setMenu(false);f()}} className="text-left rounded-xl px-3 py-3 font-semibold text-lg hover:bg-raise">{t}</button>)}
    </nav></div>}
  </div>

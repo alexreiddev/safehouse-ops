@@ -9,6 +9,7 @@ import Admin from './Admin'
 import {SecureScreen} from './Secure'
 import {Err} from './ui'
 import Guide,{TOUR,seen,mark} from './Tour'
+import Setup from './Setup'
 
 /* Any render crash shows a recovery screen instead of a blank page. */
 export class Guard extends Component{state={e:null};static getDerivedStateFromError(e){return{e}}
@@ -22,12 +23,14 @@ export default function App(){
  const[wait,setWait]=useState()
  const load=async()=>{setErr();try{const id=await uid(s=>setWait(s));setWait();const{data,error}=await sb.from('agents').select().eq('id',id).maybeSingle();if(error)throw error;setAgent(data||null)}catch(e){setErr(e.message)}}
  useEffect(()=>{load()},[])
- const[tour,setTour]=useState(false)
- useEffect(()=>{if(agent&&!seen('sh_tour'))setTour(true)},[agent])
+ const[tour,setTour]=useState(false),[check,setCheck]=useState(()=>!seen('sh_setup'))
+ useEffect(()=>{if(agent&&!check&&!seen('sh_tour'))setTour(true)},[agent,check])
  const go=v=>{localStorage.setItem('sh_view',v);setView(v);if(v==='hq')load()}
  if(err)return <div className="p-6 pt-16"><h1 className="stencil text-5xl mb-4">No signal</h1><Err>Couldn't reach HQ: {err}</Err><button onClick={()=>{setAgent(undefined);load()}} className="mt-4 w-full rounded-xl bg-signal text-onsig py-4 text-xl font-bold">Try again</button></div>
  if(agent===undefined)return <div className="min-h-dvh grid place-items-center"><div className="text-center"><div className="stencil text-4xl animate-pulse">Safehouse</div>{wait&&<p className="mt-3 font-semibold text-mute">Lots of agents checking in. Retrying in {wait}s…</p>}</div></div>
  if(!agent)return <Onboard onDone={load}/>
+ if(check)return <Setup first onDone={()=>{mark('sh_setup');setCheck(false)}}/>
+ if(view==='setup')return <Setup onDone={()=>go('hq')}/>
  if(view==='drop')return <DeadDrop agent={agent} onExit={()=>go('hq')}/>
  if(view==='hunt')return <Hunt agent={agent} onExit={()=>go('hq')}/>
  if(view==='board')return <Board agent={agent} onExit={()=>go('hq')}/>
