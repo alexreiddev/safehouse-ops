@@ -182,3 +182,8 @@ grant execute on function hunt_sh_add(uuid,text,float8,float8,int,int) to authen
 grant execute on function hunt_sh_del(uuid) to authenticated;
 grant execute on function start_drop_pick(float8,float8,uuid) to authenticated;
 grant execute on function update_pos(uuid,float8,float8) to authenticated;
+
+-- players must not be able to probe who is in a safehouse
+revoke execute on function _truce_until(uuid) from public, anon, authenticated;
+alter function _shrink_sec(jsonb) set search_path=public;
+alter function _police(jsonb) set search_path=public;
